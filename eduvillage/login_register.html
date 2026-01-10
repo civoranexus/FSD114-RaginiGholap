@@ -79,14 +79,18 @@ button:hover{background:#2a165f;color:white;}
 <h3>Student Login</h3>
 <input id="sEmail" type="text" placeholder="Email">
 <input id="sPass" type="password" placeholder="Password">
-<button onclick="studentLogin()">Login</button>
+<button type="button" onclick="togglePassword('sPass')">Show</button>
+<button type="button" onclick="studentLogin()">Login</button> <!-- must also be type="button" -->
+
 </div>
 
 <div id="teacher-form" class="login-form">
 <h3>Teacher Login</h3>
 <input id="tEmail" type="text" placeholder="Email">
 <input id="tPass" type="password" placeholder="Password">
-<button onclick="teacherLogin()">Login</button>
+<button type="button" onclick="togglePassword('tPass')">show</button>
+<button type="button" onclick="teacherLogin()">Login</button> <!-- must also be type="button" -->
+
 </div>
 
 <button class="password-btn" onclick="showPasswordPage()">Forgot Password?</button>
@@ -106,18 +110,23 @@ button:hover{background:#2a165f;color:white;}
 <input id="tName" type="text" placeholder="Full Name">
 <input id="tRegEmail" type="email" placeholder="Email">
 <input id="tRegPass" type="password" placeholder="Password">
+<button class="small-btn" type="button" onclick="togglePassword('tRegPass')">Show</button>
 <input type="text" placeholder="Subject Expertise">
-<button onclick="registerTeacher()">Register</button>
+<button type="button" onclick="registerTeacher()">Register</button>
 </div>
+
 
 <div class="form-container" id="student">
 <input id="sName" type="text" placeholder="Full Name">
 <input id="sRegEmail" type="email" placeholder="Email">
 <input id="sRegPass" type="password" placeholder="Password">
+<button class="small-btn" type="button" onclick="togglePassword('sRegPass')">Show</button>
 <input type="text" placeholder="Education Level">
 <input type="text" placeholder="Field of Study">
-<button onclick="registerStudent()">Register</button>
+<button type="button" onclick="registerStudent()">Register</button>
 </div>
+
+
 
 <button class="back-btn" onclick="showLoginPage()">Back</button>
 </div>

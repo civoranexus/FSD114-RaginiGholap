@@ -1,7 +1,7 @@
-const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
+const express = require("express");
+const cors = require("cors");
+const bcrypt = require("bcryptjs");
+const bodyParser = require("body-parser");
 
 const app = express();
 const PORT = 3000;
@@ -9,59 +9,39 @@ const PORT = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Temporary storage (we will replace with DB later)
-const users = [];
+// In-memory user storage with test users
+const users = [
+  { username: "student1@example.com", passwordHash: bcrypt.hashSync("student123", 10), role: "student" },
+  { username: "teacher1@example.com", passwordHash: bcrypt.hashSync("teacher123", 10), role: "teacher" }
+];
 
-// Home route
-app.get('/', (req, res) => {
-  res.send('EduVillage Backend Server is Running');
+console.log("Initial test users:", users);
+
+// ---------- REGISTER ----------
+app.post("/register", async (req, res) => {
+  const { username, password, role } = req.body;
+  if (!username || !password || !role) return res.json({ message: "Fill all fields." });
+
+  const exists = users.find(u => u.username === username && u.role === role);
+  if (exists) return res.json({ message: "User already exists." });
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  users.push({ username, passwordHash, role });
+  console.log("Users after registration:", users);
+  return res.json({ message: `${role} registered successfully!` });
 });
 
-// Register API
-app.post('/register', (req, res) => {
-  const { name, email, password, role } = req.body;
+// ---------- LOGIN ----------
+app.post("/login", async (req, res) => {
+  const { username, password, role } = req.body;
+  if (!username || !password || !role) return res.json({ message: "Fill all fields." });
 
-  // Check if user exists
-  const userExists = users.find(u => u.email === email);
-  if (userExists) {
-    return res.status(400).json({ message: 'User already exists' });
-  }
+  const user = users.find(u => u.username === username && u.role === role);
+  if (!user) return res.json({ message: "User not found." });
 
-  // Encrypt password
-  const hashedPassword = bcrypt.hashSync(password, 8);
-
-  // Save user
-  users.push({
-    name,
-    email,
-    password: hashedPassword,
-    role
-  });
-
-  res.json({ message: 'Registration successful' });
+  const isMatch = await bcrypt.compare(password, user.passwordHash);
+  if (isMatch) return res.json({ user: { username: user.username, role: user.role } });
+  else return res.json({ message: "Wrong password." });
 });
 
-// Login API
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
-
-  const user = users.find(u => u.email === email);
-  if (!user) {
-    return res.status(400).json({ message: 'User not found' });
-  }
-
-  const isPasswordValid = bcrypt.compareSync(password, user.password);
-  if (!isPasswordValid) {
-    return res.status(401).json({ message: 'Invalid password' });
-  }
-
-  res.json({
-    message: 'Login successful',
-    role: user.role
-  });
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
