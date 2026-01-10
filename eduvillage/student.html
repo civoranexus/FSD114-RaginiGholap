@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>EduVillage | Student Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family: Arial, sans-serif;}
+body{display:flex;height:100vh;background: linear-gradient(135deg, #6e45e2, #88d3ce);}
+.sidebar{width:240px;background: #472e9f;color:white;padding:20px;}
+.sidebar h2{text-align:center;margin-bottom:30px;font-family: "Lucida Handwriting";}
+.sidebar button{width:100%;padding:12px;margin:6px 0;border:none;background:#755dca;color:black;cursor:pointer;text-align:left;border-radius:5px;transition:0.3s;}
+.sidebar button:hover{background:#2a165f;color:white;}
+.main{flex:1;padding:30px;overflow-y:auto;}
+.section{display:none;background: linear-gradient(135deg, #baa9c5, #88d3ce);padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.2);}
+.section.active{display:block;}
+.section button{padding:8px 15px;background:#755dca;border:none;border-radius:5px;cursor:pointer;}
+.section button:hover{background:#2a165f;color:white;}
+textarea{width:100%;padding:10px;border-radius:5px;resize:none;}
+h2{margin-bottom:10px;}
+</style>
+</head>
+
+<body>
+<div class="sidebar">
+    <h2>EduVillage</h2>
+    <button onclick="showSection('profile')">Profile</button>
+    <button onclick="showSection('assignment')">Assignments</button>
+    <button onclick="showSection('pyq')">Previous Year Questions</button>
+    <button onclick="showSection('leaderboard')">Leaderboard</button>
+    <button onclick="showSection('feedback')">Feedback</button>
+    <button onclick="logout()">Logout</button>
+</div>
+
+<div class="main">
+<div id="profile" class="section active">
+    <h2>Student Profile</h2>
+    <p><b>Name:</b> <span id="studentName"></span></p>
+    <p><b>Email:</b> <span id="studentEmail"></span></p>
+</div>
+
+<div id="assignment" class="section">
+    <h2>Assignments</h2>
+    <ul>
+        <li>HTML Basics – Pending</li>
+        <li>CSS Styling – Submitted</li>
+        <li>JavaScript Intro – Pending</li>
+    </ul>
+</div>
+
+<div id="pyq" class="section">
+    <h2>Previous Year Questions</h2>
+    <ul>
+        <li>Web Development 2023</li>
+        <li>Database Management 2022</li>
+        <li>Python Programming 2021</li>
+    </ul>
+</div>
+
+<div id="leaderboard" class="section">
+    <h2>Leaderboard</h2>
+    <ol>
+        <li>Amit – 95%</li>
+        <li>Riya – 92%</li>
+        <li>You – 90%</li>
+    </ol>
+</div>
+
+<div id="feedback" class="section">
+    <h2>Feedback</h2>
+    <textarea id="feedbackText" rows="5" placeholder="Enter your feedback"></textarea>
+    <br><br>
+    <button onclick="submitFeedback()">Submit</button>
+</div>
+</div>
+
+<script src="script.js"></script>
+<script>
+/* SECTION SWITCH */
+function showSection(id){
+    document.querySelectorAll('.section').forEach(sec=>sec.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+/* LOAD STUDENT DATA */
+document.getElementById("studentName").innerText =
+    localStorage.getItem("studentName") || "Student";
+document.getElementById("studentEmail").innerText =
+    localStorage.getItem("studentEmail") || "Not Available";
+
+/* FEEDBACK SUBMISSION */
+function submitFeedback(){
+    let feedback = document.getElementById("feedbackText").value;
+    if(feedback===""){alert("Please enter feedback"); return;}
+    localStorage.setItem("studentFeedback", feedback);
+    alert("Feedback submitted successfully!");
+    document.getElementById("feedbackText").value="";
+}
+
+/* LOGOUT */
+function logout(){
+    // Go back to combined login/register page
+    window.location.href = "login_register.html";
+}
+</script>
+</body>
+</html>
