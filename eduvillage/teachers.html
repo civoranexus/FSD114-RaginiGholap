@@ -20,8 +20,8 @@ button.action:hover{background:#2a165f;color:white;}
 h3{margin-bottom:10px;}
 </style>
 </head>
-
 <body>
+
 <div class="sidebar">
     <h2>EduVillage</h2>
     <button onclick="showSection('profile')">Profile</button>
@@ -33,44 +33,44 @@ h3{margin-bottom:10px;}
 </div>
 
 <div class="main">
-<div id="profile" class="section active">
-    <h3>Teacher Profile</h3>
-    <p><b>Name:</b> <span id="teacherName"></span></p>
-    <p><b>Email:</b> <span id="teacherEmail"></span></p>
+    <!-- PROFILE -->
+    <div id="profile" class="section active">
+        <h3>Teacher Profile</h3>
+        <p><b>Name:</b> <span id="teacherName"></span></p>
+        <p><b>Email:</b> <span id="teacherEmail"></span></p>
+    </div>
+
+    <!-- COURSES -->
+    <div id="courses" class="section">
+        <h3>Manage Courses</h3>
+        <input type="text" id="courseName" placeholder="Course Name">
+        <button class="action" onclick="addCourse()">Add Course</button>
+        <ul id="courseList"></ul>
+    </div>
+
+    <!-- ASSIGNMENTS -->
+    <div id="assignment" class="section">
+        <h3>Create Assignment</h3>
+        <input type="text" id="assignmentTitle" placeholder="Assignment Title">
+        <textarea id="assignmentDesc" rows="3" placeholder="Assignment Description"></textarea>
+        <button class="action" onclick="addAssignment()">Add Assignment</button>
+        <ul id="assignmentList"></ul>
+    </div>
+
+    <!-- NOTES -->
+    <div id="notes" class="section">
+        <h3>Upload Notes</h3>
+        <textarea id="notesText" rows="4" placeholder="Enter notes content"></textarea>
+        <button class="action" onclick="saveNotes()">Save Notes</button>
+    </div>
+
+    <!-- STUDENTS -->
+    <div id="students" class="section">
+        <h3>Students List</h3>
+        <ul id="studentList"></ul>
+    </div>
 </div>
 
-<div id="courses" class="section">
-    <h3>Manage Courses</h3>
-    <input type="text" id="courseName" placeholder="Course Name">
-    <button class="action" onclick="addCourse()">Add Course</button>
-    <ul id="courseList"></ul>
-</div>
-
-<div id="assignment" class="section">
-    <h3>Create Assignment</h3>
-    <input type="text" id="assignmentTitle" placeholder="Assignment Title">
-    <textarea id="assignmentDesc" rows="3" placeholder="Assignment Description"></textarea>
-    <button class="action" onclick="addAssignment()">Add Assignment</button>
-    <ul id="assignmentList"></ul>
-</div>
-
-<div id="notes" class="section">
-    <h3>Upload Notes</h3>
-    <textarea id="notesText" rows="4" placeholder="Enter notes content"></textarea>
-    <button class="action" onclick="saveNotes()">Save Notes</button>
-</div>
-
-<div id="students" class="section">
-    <h3>Students List</h3>
-    <ul>
-        <li>Student 1 – Web Development</li>
-        <li>Student 2 – Python</li>
-        <li>Student 3 – Database</li>
-    </ul>
-</div>
-</div>
-
-<script src="script.js"></script>
 <script>
 /* SECTION SWITCH */
 function showSection(id){
@@ -78,47 +78,82 @@ function showSection(id){
     document.getElementById(id).classList.add('active');
 }
 
+/* LOGOUT */
+function logout(){
+    localStorage.clear();
+    window.location.href = "login_register.html";
+}
+
 /* LOAD TEACHER DATA */
-document.getElementById("teacherName").innerText =
-    localStorage.getItem("teacherName") || "Teacher";
-document.getElementById("teacherEmail").innerText =
-    localStorage.getItem("teacherEmail") || "Not Available";
+document.getElementById("teacherName").innerText = localStorage.getItem("teacherName") || "Teacher";
+document.getElementById("teacherEmail").innerText = localStorage.getItem("teacherEmail") || "Not Available";
 
 /* COURSES */
 function addCourse(){
-    let name=document.getElementById("courseName").value;
-    if(name===""){alert("Enter course name"); return;}
-    let li=document.createElement("li");
-    li.innerText=name;
+    let name = document.getElementById("courseName").value;
+    if(!name){alert("Enter course name"); return;}
+    let li = document.createElement("li");
+    li.innerText = name;
     document.getElementById("courseList").appendChild(li);
-    document.getElementById("courseName").value="";
+    document.getElementById("courseName").value = "";
 }
 
 /* ASSIGNMENTS */
 function addAssignment(){
-    let title=document.getElementById("assignmentTitle").value;
-    let desc=document.getElementById("assignmentDesc").value;
-    if(title===""){alert("Enter assignment title"); return;}
-    let li=document.createElement("li");
-    li.innerText=title+(desc? " – "+desc:"");
+    let title = document.getElementById("assignmentTitle").value;
+    let desc = document.getElementById("assignmentDesc").value;
+    if(!title){alert("Enter assignment title"); return;}
+    let li = document.createElement("li");
+    li.innerText = title + (desc? " – " + desc : "");
     document.getElementById("assignmentList").appendChild(li);
-    document.getElementById("assignmentTitle").value="";
-    document.getElementById("assignmentDesc").value="";
+    document.getElementById("assignmentTitle").value = "";
+    document.getElementById("assignmentDesc").value = "";
 }
 
 /* NOTES */
 function saveNotes(){
-    let notes=document.getElementById("notesText").value;
-    if(notes===""){alert("Enter notes"); return;}
+    let notes = document.getElementById("notesText").value;
+    if(!notes){alert("Enter notes"); return;}
     localStorage.setItem("teacherNotes", notes);
     alert("Notes saved successfully!");
-    document.getElementById("notesText").value="";
+    document.getElementById("notesText").value = "";
 }
 
-/* LOGOUT */
-function logout(){
-    window.location.href = "login_register.html";
+/* LOAD STUDENTS DYNAMICALLY */
+async function loadStudents(){
+    try {
+        const res = await fetch("http://localhost:3000/getStudents");
+        const data = await res.json();
+        const ul = document.getElementById("studentList");
+        ul.innerHTML = "";
+        if(data.students && data.students.length > 0){
+            data.students.forEach(student=>{
+                const li = document.createElement("li");
+                li.innerText = `${student.fullName} – ${student.username}`;
+                ul.appendChild(li);
+            });
+        } else {
+            const li = document.createElement("li");
+            li.innerText = "No students registered yet.";
+            ul.appendChild(li);
+        }
+    } catch(err){
+        console.error(err);
+        document.getElementById("studentList").innerHTML = "<li>Failed to load students</li>";
+    }
 }
+
+/* LOAD DASHBOARD DATA */
+window.addEventListener("DOMContentLoaded", ()=>{
+    // Load notes if saved
+    if(localStorage.getItem("teacherNotes"))
+        document.getElementById("notesText").value = localStorage.getItem("teacherNotes");
+
+    // Load students
+    if(document.getElementById("studentList")){
+        loadStudents();
+    }
+});
 </script>
 </body>
 </html>

@@ -1,47 +1,106 @@
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
-const bodyParser = require("body-parser");
+const mysql = require("mysql2");
 
 const app = express();
 const PORT = 3000;
 
+// ---------------- MIDDLEWARE ----------------
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
-// In-memory user storage with test users
-const users = [
-  { username: "student1@example.com", passwordHash: bcrypt.hashSync("student123", 10), role: "student" },
-  { username: "teacher1@example.com", passwordHash: bcrypt.hashSync("teacher123", 10), role: "teacher" }
-];
+// ---------------- MYSQL CONNECTION ----------------
+const db = mysql.createConnection({
+    host: "localhost",
+    user: "root",
+    password: "",       // your MySQL root password
+    database: "eduvillage"
+});
 
-console.log("Initial test users:", users);
+db.connect(err => {
+    if (err) console.log("DB Connection Error:", err);
+    else console.log("MySQL connected!");
+});
 
-// ---------- REGISTER ----------
+// ---------------- REGISTER ----------------
 app.post("/register", async (req, res) => {
-  const { username, password, role } = req.body;
-  if (!username || !password || !role) return res.json({ message: "Fill all fields." });
+    const { username, password, role, fullName } = req.body;
 
-  const exists = users.find(u => u.username === username && u.role === role);
-  if (exists) return res.json({ message: "User already exists." });
+    if (!username || !password || !role) {
+        return res.json({ message: "All fields are required" });
+    }
 
-  const passwordHash = await bcrypt.hash(password, 10);
-  users.push({ username, passwordHash, role });
-  console.log("Users after registration:", users);
-  return res.json({ message: `${role} registered successfully!` });
+    // Check if user exists
+    db.query(
+        "SELECT * FROM users WHERE username = ? AND role = ?",
+        [username, role],
+        async (err, results) => {
+            if (err) return res.json({ message: "Database error" });
+            if (results.length > 0) return res.json({ message: "User already registered" });
+
+            // Hash password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Insert user into DB
+            db.query(
+                "INSERT INTO users (fullName, username, password, role) VALUES (?, ?, ?, ?)",
+                [fullName, username, hashedPassword, role],
+                (err, result) => {
+                    if (err) return res.json({ message: "Database error" });
+                    res.json({ message: "Registration successful" });
+                }
+            );
+        }
+    );
 });
 
-// ---------- LOGIN ----------
-app.post("/login", async (req, res) => {
-  const { username, password, role } = req.body;
-  if (!username || !password || !role) return res.json({ message: "Fill all fields." });
+// ---------------- LOGIN ----------------
+app.post("/login", (req, res) => {
+    const { username, password, role } = req.body;
 
-  const user = users.find(u => u.username === username && u.role === role);
-  if (!user) return res.json({ message: "User not found." });
+    db.query(
+        "SELECT * FROM users WHERE username = ? AND role = ?",
+        [username, role],
+        async (err, results) => {
+            if (err) return res.json({ message: "Database error" });
+            if (results.length === 0) return res.json({ message: "User not found" });
 
-  const isMatch = await bcrypt.compare(password, user.passwordHash);
-  if (isMatch) return res.json({ user: { username: user.username, role: user.role } });
-  else return res.json({ message: "Wrong password." });
+            const user = results[0];
+            const isMatch = await bcrypt.compare(password, user.password);
+
+            if (!isMatch) return res.json({ message: "Invalid password" });
+
+            res.json({
+                message: "Login successful",
+                user: {
+                    username: user.username,
+                    fullName: user.fullName,
+                    role: user.role
+                }
+            });
+        }
+    );
 });
 
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+// ---------------- GET STUDENTS (for teacher dashboard) ----------------
+app.get("/getStudents", (req, res) => {
+    const sql = "SELECT fullName, username FROM users WHERE role = 'student'";
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("DB Error:", err);
+            return res.status(500).json({ message: "Failed to list students" });
+        }
+
+        // Add a course field if you want, or default to "N/A"
+        const students = results.map(r => ({ ...r, course: "N/A" }));
+        res.json({ students });
+    });
+});
+
+
+
+// ---------------- START SERVER ----------------
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
