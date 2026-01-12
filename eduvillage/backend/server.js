@@ -1,3 +1,4 @@
+// ---------------- server.js ----------------
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
@@ -6,101 +7,126 @@ const mysql = require("mysql2");
 const app = express();
 const PORT = 3000;
 
-// ---------------- MIDDLEWARE ----------------
+// ---------- Middleware ----------
 app.use(cors());
 app.use(express.json());
 
-// ---------------- MYSQL CONNECTION ----------------
+// ---------- MySQL Connection ----------
 const db = mysql.createConnection({
-    host: "localhost",
-    user: "root",
-    password: "",       // your MySQL root password
-    database: "eduvillage"
+  host: "localhost",
+  user: "root",
+  password: "",        // <-- your MySQL root password
+  database: "eduvillage"
 });
 
 db.connect(err => {
-    if (err) console.log("DB Connection Error:", err);
-    else console.log("MySQL connected!");
+  if (err) {
+    console.error("❌ DB Connection Error:", err);
+  } else {
+    console.log("✅ MySQL connected!");
+  }
 });
 
-// ---------------- REGISTER ----------------
+// ---------- REGISTER ----------
 app.post("/register", async (req, res) => {
-    const { username, password, role, fullName } = req.body;
+  const { role, fullName, username, password, educationLevel, fieldOfStudy, subjectExpertise } = req.body;
 
-    if (!username || !password || !role) {
-        return res.json({ message: "All fields are required" });
+  if (!role || !fullName || !username || !password) {
+    return res.status(400).json({ message: "All required fields must be provided!" });
+  }
+
+  try {
+    // Check if user exists in correct table
+    const table = role === "student" ? "student" : "teacher";
+    db.query(`SELECT * FROM ${table} WHERE username = ?`, [username], async (err, results) => {
+      if (err) {
+        console.error("❌ SELECT Error:", err);
+        return res.status(500).json({ message: "Database error during select" });
+      }
+
+      if (results.length > 0) {
+        return res.json({ message: "User already registered" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Build insert query dynamically
+      let insertQuery = "";
+      let values = [];
+
+      if (role === "student") {
+        insertQuery = `INSERT INTO student (fullName, username, password, educationLevel, fieldOfStudy) VALUES (?, ?, ?, ?, ?)`;
+        values = [fullName, username, hashedPassword, educationLevel || "", fieldOfStudy || ""];
+      } else {
+        insertQuery = `INSERT INTO teacher (fullName, username, password, subjectExpertise) VALUES (?, ?, ?, ?)`;
+        values = [fullName, username, hashedPassword, subjectExpertise || ""];
+      }
+
+      db.query(insertQuery, values, (err, result) => {
+        if (err) {
+          console.error("❌ INSERT Error:", err);
+          return res.status(500).json({ message: "Database error during insert" });
+        }
+        res.json({ message: "Registration successful" });
+      });
+    });
+  } catch (err) {
+    console.error("❌ Server Error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// ---------- LOGIN ----------
+app.post("/login", (req, res) => {
+  const { role, username, password } = req.body;
+
+  if (!role || !username || !password) {
+    return res.status(400).json({ message: "All required fields must be provided!" });
+  }
+
+  const table = role === "student" ? "student" : "teacher";
+
+  db.query(`SELECT * FROM ${table} WHERE username = ?`, [username], async (err, results) => {
+    if (err) {
+      console.error("❌ SELECT Error:", err);
+      return res.status(500).json({ message: "Database error during login" });
     }
 
-    // Check if user exists
-    db.query(
-        "SELECT * FROM users WHERE username = ? AND role = ?",
-        [username, role],
-        async (err, results) => {
-            if (err) return res.json({ message: "Database error" });
-            if (results.length > 0) return res.json({ message: "User already registered" });
+    if (results.length === 0) {
+      return res.json({ message: "User not found" });
+    }
 
-            // Hash password
-            const hashedPassword = await bcrypt.hash(password, 10);
+    const user = results[0];
+    const isMatch = await bcrypt.compare(password, user.password);
 
-            // Insert user into DB
-            db.query(
-                "INSERT INTO users (fullName, username, password, role) VALUES (?, ?, ?, ?)",
-                [fullName, username, hashedPassword, role],
-                (err, result) => {
-                    if (err) return res.json({ message: "Database error" });
-                    res.json({ message: "Registration successful" });
-                }
-            );
-        }
-    );
-});
+    if (!isMatch) {
+      return res.json({ message: "Invalid password" });
+    }
 
-// ---------------- LOGIN ----------------
-app.post("/login", (req, res) => {
-    const { username, password, role } = req.body;
-
-    db.query(
-        "SELECT * FROM users WHERE username = ? AND role = ?",
-        [username, role],
-        async (err, results) => {
-            if (err) return res.json({ message: "Database error" });
-            if (results.length === 0) return res.json({ message: "User not found" });
-
-            const user = results[0];
-            const isMatch = await bcrypt.compare(password, user.password);
-
-            if (!isMatch) return res.json({ message: "Invalid password" });
-
-            res.json({
-                message: "Login successful",
-                user: {
-                    username: user.username,
-                    fullName: user.fullName,
-                    role: user.role
-                }
-            });
-        }
-    );
-});
-
-// ---------------- GET STUDENTS (for teacher dashboard) ----------------
-app.get("/getStudents", (req, res) => {
-    const sql = "SELECT fullName, username FROM users WHERE role = 'student'";
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error("DB Error:", err);
-            return res.status(500).json({ message: "Failed to list students" });
-        }
-
-        // Add a course field if you want, or default to "N/A"
-        const students = results.map(r => ({ ...r, course: "N/A" }));
-        res.json({ students });
+    res.json({
+      message: "Login successful",
+      user: {
+        username: user.username,
+        fullName: user.fullName,
+        role: role
+      }
     });
+  });
 });
 
+// ---------- GET ALL STUDENTS (for teacher dashboard) ----------
+app.get("/getStudents", (req, res) => {
+  db.query("SELECT * FROM student", (err, results) => {
+    if (err) {
+      console.error("❌ SELECT students Error:", err);
+      return res.status(500).json({ message: "Database error fetching students" });
+    }
+    res.json({ students: results });
+  });
+});
 
-
-// ---------------- START SERVER ----------------
+// ---------- START SERVER ----------
 app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
 });

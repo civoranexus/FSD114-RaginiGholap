@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EduVillage | Login</title>
+<title>EduVillage | Login/Register</title>
 <style>
 body{
     font-family: Arial, sans-serif;
@@ -58,16 +58,6 @@ button:hover{background:#2a165f;color:white;}
 </head>
 <body>
 
-<!-- PASSWORD RESET -->
-<div class="container password-container" id="password-container" style="display:none">
-<h1>EduVillage</h1>
-<h2>Reset Password</h2>
-<input type="email" placeholder="Registered Email">
-<input type="password" placeholder="OTP">
-<button onclick="alert('Password Reset Link Sent')">Reset</button>
-<button class="back-btn" onclick="showLoginPage()">Back</button>
-</div>
-
 <!-- LOGIN -->
 <div class="container" id="login-container">
 <h1>EduVillage</h1>
@@ -80,20 +70,17 @@ button:hover{background:#2a165f;color:white;}
 <input id="sEmail" type="text" placeholder="Email">
 <input id="sPass" type="password" placeholder="Password">
 <button type="button" onclick="togglePassword('sPass')">Show</button>
-<button type="button" onclick="studentLogin()">Login</button> <!-- must also be type="button" -->
-
+<button type="button" onclick="studentLogin()">Login</button>
 </div>
 
 <div id="teacher-form" class="login-form">
 <h3>Teacher Login</h3>
 <input id="tEmail" type="text" placeholder="Email">
 <input id="tPass" type="password" placeholder="Password">
-<button type="button" onclick="togglePassword('tPass')">show</button>
-<button type="button" onclick="teacherLogin()">Login</button> <!-- must also be type="button" -->
-
+<button type="button" onclick="togglePassword('tPass')">Show</button>
+<button type="button" onclick="teacherLogin()">Login</button>
 </div>
 
-<button class="password-btn" onclick="showPasswordPage()">Forgot Password?</button>
 <button class="signup-btn" onclick="showRegisterPage()">Create Account</button>
 </div>
 
@@ -110,23 +97,20 @@ button:hover{background:#2a165f;color:white;}
 <input id="tName" type="text" placeholder="Full Name">
 <input id="tRegEmail" type="email" placeholder="Email">
 <input id="tRegPass" type="password" placeholder="Password">
-<button class="small-btn" type="button" onclick="togglePassword('tRegPass')">Show</button>
-<input type="text" placeholder="Subject Expertise">
+<button type="button" onclick="togglePassword('tRegPass')">Show</button>
+<input id="tSubject" type="text" placeholder="Subject Expertise">
 <button type="button" onclick="registerTeacher()">Register</button>
 </div>
-
 
 <div class="form-container" id="student">
 <input id="sName" type="text" placeholder="Full Name">
 <input id="sRegEmail" type="email" placeholder="Email">
 <input id="sRegPass" type="password" placeholder="Password">
-<button class="small-btn" type="button" onclick="togglePassword('sRegPass')">Show</button>
-<input type="text" placeholder="Education Level">
-<input type="text" placeholder="Field of Study">
+<button type="button" onclick="togglePassword('sRegPass')">Show</button>
+<input id="sEducation" type="text" placeholder="Education Level">
+<input id="sField" type="text" placeholder="Field of Study">
 <button type="button" onclick="registerStudent()">Register</button>
 </div>
-
-
 
 <button class="back-btn" onclick="showLoginPage()">Back</button>
 </div>
