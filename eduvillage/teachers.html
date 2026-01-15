@@ -151,16 +151,28 @@ function loadNotes(){
 }
 
 // ---------- STUDENTS ----------
-function loadStudents(){
-    const ul = document.getElementById("studentList");
-    ul.innerHTML = "";
-    let students = JSON.parse(localStorage.getItem("allStudents")) || [];
-    students.forEach(s => {
-        const li = document.createElement("li");
-        li.innerText = `${s.fullName} – ${s.email}`;
-        ul.appendChild(li);
-    });
+// ---------- LOAD STUDENTS FROM DATABASE ----------
+function loadStudents() {
+    fetch("http://localhost:3000/students")
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert("Failed to load students");
+                return;
+            }
+
+            const ul = document.getElementById("studentList");
+            ul.innerHTML = "";
+
+            data.students.forEach(s => {
+                const li = document.createElement("li");
+                li.innerText = `${s.name} – ${s.education} – ${s.field}`;
+                ul.appendChild(li);
+            });
+        })
+        .catch(() => alert("Server error while loading students"));
 }
+
 
 // ---------- LOGOUT ----------
 function logout(){
