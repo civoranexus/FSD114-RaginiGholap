@@ -43,15 +43,17 @@ async function studentLogin() {
     const data = await res.json();
 
     if (data.success) {
-    // SAVE DATA
-    localStorage.setItem("studentName", data.student.name);
-    localStorage.setItem("studentEmail", data.student.email);
+        // ✅ SAVE DATA
+        localStorage.setItem("studentName", data.student.name);
+        localStorage.setItem("studentEmail", data.student.email);
 
-    alert("Student Login Successful");
-    window.location.href = "student.html";
+        alert("Student Login Successful");
+        window.location.href = "student.html";
+    } else {
+        alert(data.message);
+    }
 }
 
-}
 
 
 
@@ -69,7 +71,7 @@ async function teacherLogin() {
     const data = await res.json();
 
     if (data.success) {
-        // ✅ SAVE TEACHER INFO
+        // ✅ SAVE DATA
         localStorage.setItem("teacherName", data.name);
         localStorage.setItem("teacherEmail", data.email);
 
@@ -79,6 +81,7 @@ async function teacherLogin() {
         alert(data.message);
     }
 }
+
 
 
 

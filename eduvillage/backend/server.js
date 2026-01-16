@@ -130,3 +130,17 @@ app.post("/teacher/login", (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
+
+// ================= GET ALL STUDENTS =================
+app.get("/students", (req, res) => {
+    db.query(
+        "SELECT name, email FROM student",
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.json({ success: false });
+            }
+            res.json({ success: true, students: result });
+        }
+    );
+});

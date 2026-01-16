@@ -151,27 +151,25 @@ function loadNotes(){
 }
 
 // ---------- STUDENTS ----------
-// ---------- LOAD STUDENTS FROM DATABASE ----------
-function loadStudents() {
-    fetch("http://localhost:3000/students")
-        .then(res => res.json())
-        .then(data => {
-            if (!data.success) {
-                alert("Failed to load students");
-                return;
-            }
 
-            const ul = document.getElementById("studentList");
-            ul.innerHTML = "";
+async function loadStudents(){
+    const res = await fetch("http://localhost:3000/students");
+    const data = await res.json();
 
-            data.students.forEach(s => {
-                const li = document.createElement("li");
-                li.innerText = `${s.name} – ${s.education} – ${s.field}`;
-                ul.appendChild(li);
-            });
-        })
-        .catch(() => alert("Server error while loading students"));
+    const ul = document.getElementById("studentList");
+    ul.innerHTML = "";
+
+    if(data.success){
+        data.students.forEach(s => {
+            const li = document.createElement("li");
+            li.innerText = `${s.name} – ${s.email}`;
+            ul.appendChild(li);
+        });
+    } else {
+        ul.innerHTML = "<li>Error loading students</li>";
+    }
 }
+
 
 
 // ---------- LOGOUT ----------
