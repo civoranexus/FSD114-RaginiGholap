@@ -144,3 +144,68 @@ app.get("/students", (req, res) => {
         }
     );
 });
+// ================= ADD COURSE =================
+app.post("/course/add", (req, res) => {
+    const { course_name } = req.body;
+
+    db.query(
+        "INSERT INTO courses (course_name) VALUES (?)",
+        [course_name],
+        (err) => {
+            if (err) {
+                console.log(err);
+                return res.json({ success: false });
+            }
+            res.json({ success: true });
+        }
+    );
+});
+// ================= GET COURSES =================
+app.get("/courses", (req, res) => {
+    db.query(
+        "SELECT * FROM courses",
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.json({ success: false });
+            }
+            res.json({ success: true, courses: result });
+        }
+    );
+});
+// ================= CREATE ASSIGNMENT =================
+app.post("/assignment/add", (req, res) => {
+    const { title, description, course_name, teacher_name } = req.body;
+
+    if(!teacher_name){
+        return res.json({ success:false, message:"Teacher not logged in" });
+    }
+
+    db.query(
+        "INSERT INTO assignments (title, description, course_name, teacher_name) VALUES (?, ?, ?, ?)",
+        [title, description, course_name, teacher_name],
+        (err) => {
+            if(err){
+                console.log(err);
+                return res.json({ success:false });
+            }
+            res.json({ success:true });
+        }
+    );
+});
+// ================= GET ASSIGNMENTS =================
+app.get("/assignments/:teacherName", (req, res) => {
+    const teacherName = req.params.teacherName;
+
+    db.query(
+        "SELECT * FROM assignments WHERE teacher_name = ?",
+        [teacherName],
+        (err, result) => {
+            if(err){
+                console.log(err);
+                return res.json({ success:false });
+            }
+            res.json({ success:true, assignments: result });
+        }
+    );
+});
