@@ -209,3 +209,32 @@ app.get("/assignments/:teacherName", (req, res) => {
         }
     );
 });
+// ================= SAVE NOTES =================
+app.post("/notes", (req, res) => {
+    const { teacherName, content } = req.body;
+
+    db.query(
+        "INSERT INTO notes (teacher_name, content) VALUES (?, ?)",
+        [teacherName, content],
+        (err) => {
+            if (err) {
+                console.log(err);
+                return res.json({ success: false });
+            }
+            res.json({ success: true });
+        }
+    );
+});
+// ================= GET NOTES =================
+app.get("/notes", (req, res) => {
+    db.query(
+        "SELECT teacher_name, content, created_at FROM notes ORDER BY created_at DESC",
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.json({ success: false });
+            }
+            res.json({ success: true, notes: result });
+        }
+    );
+});

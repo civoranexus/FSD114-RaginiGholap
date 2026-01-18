@@ -31,7 +31,8 @@ li button:hover{background:#755dca;}
     <button onclick="showSection('courses')">Manage Courses</button>
     <button onclick="showSection('assignment')">Create Assignment</button>
     <button onclick="showSection('notes')">Upload Notes</button>
-    <button onclick="showSection('students')">View Students</button>
+    <button onclick="openStudents()">View Students</button>
+
     <button onclick="logout()">Logout</button>
 </div>
 
@@ -63,7 +64,7 @@ li button:hover{background:#755dca;}
 
     <h4>Assignments</h4>
     <ul id="assignmentList"></ul>
-</div>
+    </div>
 
 
     <!-- NOTES -->
@@ -186,17 +187,32 @@ async function loadAssignments() {
 // ---------- NOTES ----------
 function saveNotes(){
     const notes = document.getElementById("notesText").value.trim();
-    if(notes === "") { alert("Enter notes"); return; }
-    localStorage.setItem("teacherNotes", notes);
-    alert("Notes saved!");
-    loadNotes();
-    document.getElementById("notesText").value = "";
+    const teacherName = localStorage.getItem("teacherName");
+
+    if(notes === ""){
+        alert("Enter notes");
+        return;
+    }
+
+    fetch("http://localhost:3000/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            teacherName: teacherName,
+            content: notes
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success){
+            alert("Notes saved to database!");
+            document.getElementById("notesText").value = "";
+        } else {
+            alert("Error saving notes");
+        }
+    });
 }
 
-function loadNotes(){
-    const notes = localStorage.getItem("teacherNotes") || "";
-    document.getElementById("notesText").value = notes;
-}
 
 // ---------- STUDENTS ----------
 
@@ -218,6 +234,10 @@ async function loadStudents(){
     }
 }
 
+function openStudents(){
+    showSection('students');
+    loadStudents();   // 🔥 THIS WAS MISSING
+}
 
 
 // ---------- LOGOUT ----------
