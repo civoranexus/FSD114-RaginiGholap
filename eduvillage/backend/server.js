@@ -43,7 +43,7 @@ app.post("/student/register", async (req, res) => {
                 res.json({ success: true, message: "Student registered successfully" });
             }
         );
-    } catch (error) {
+    } catch {
         res.json({ success: false, message: "Server error" });
     }
 });
@@ -66,7 +66,7 @@ app.post("/teacher/register", async (req, res) => {
                 res.json({ success: true, message: "Teacher registered successfully" });
             }
         );
-    } catch (error) {
+    } catch {
         res.json({ success: false, message: "Server error" });
     }
 });
@@ -91,11 +91,10 @@ app.post("/student/login", (req, res) => {
             res.json({
                 success: true,
                 student: {
-                  name: result[0].name,
-                  email: result[0].email
+                    name: result[0].name,
+                    email: result[0].email
                 }
-           });
-
+            });
         }
     );
 });
@@ -121,29 +120,11 @@ app.post("/teacher/login", (req, res) => {
                 success: true,
                 name: result[0].name,
                 email: result[0].email
-      });
-
+            });
         }
     );
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
-});
-
-// ================= GET ALL STUDENTS =================
-app.get("/students", (req, res) => {
-    db.query(
-        "SELECT name, email FROM student",
-        (err, result) => {
-            if (err) {
-                console.log(err);
-                return res.json({ success: false });
-            }
-            res.json({ success: true, students: result });
-        }
-    );
-});
 // ================= ADD COURSE =================
 app.post("/course/add", (req, res) => {
     const { course_name } = req.body;
@@ -160,6 +141,7 @@ app.post("/course/add", (req, res) => {
         }
     );
 });
+
 // ================= GET COURSES =================
 app.get("/courses", (req, res) => {
     db.query(
@@ -173,27 +155,29 @@ app.get("/courses", (req, res) => {
         }
     );
 });
-// ================= CREATE ASSIGNMENT =================
+
+// ================= CREATE ASSIGNMENT (TEACHER) =================
 app.post("/assignment/add", (req, res) => {
     const { title, description, course_name, teacher_name } = req.body;
 
-    if(!teacher_name){
-        return res.json({ success:false, message:"Teacher not logged in" });
+    if (!teacher_name) {
+        return res.json({ success: false, message: "Teacher not logged in" });
     }
 
     db.query(
         "INSERT INTO assignments (title, description, course_name, teacher_name) VALUES (?, ?, ?, ?)",
         [title, description, course_name, teacher_name],
         (err) => {
-            if(err){
+            if (err) {
                 console.log(err);
-                return res.json({ success:false });
+                return res.json({ success: false });
             }
-            res.json({ success:true });
+            res.json({ success: true });
         }
     );
 });
-// ================= GET ASSIGNMENTS =================
+
+// ================= GET ASSIGNMENTS (TEACHER) =================
 app.get("/assignments/:teacherName", (req, res) => {
     const teacherName = req.params.teacherName;
 
@@ -201,14 +185,29 @@ app.get("/assignments/:teacherName", (req, res) => {
         "SELECT * FROM assignments WHERE teacher_name = ?",
         [teacherName],
         (err, result) => {
-            if(err){
+            if (err) {
                 console.log(err);
-                return res.json({ success:false });
+                return res.json({ success: false });
             }
-            res.json({ success:true, assignments: result });
+            res.json({ success: true, assignments: result });
         }
     );
 });
+
+// ================= GET ASSIGNMENTS (STUDENTS) ✅ NEW =================
+app.get("/assignments", (req, res) => {
+    db.query(
+        "SELECT title, description, course_name, teacher_name FROM assignments ORDER BY id DESC",
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.json({ success: false });
+            }
+            res.json({ success: true, assignments: result });
+        }
+    );
+});
+
 // ================= SAVE NOTES =================
 app.post("/notes", (req, res) => {
     const { teacherName, content } = req.body;
@@ -225,6 +224,7 @@ app.post("/notes", (req, res) => {
         }
     );
 });
+
 // ================= GET NOTES =================
 app.get("/notes", (req, res) => {
     db.query(
@@ -237,4 +237,23 @@ app.get("/notes", (req, res) => {
             res.json({ success: true, notes: result });
         }
     );
+});
+
+// ================= GET STUDENTS =================
+app.get("/students", (req, res) => {
+    db.query(
+        "SELECT name, email FROM student",
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.json({ success: false });
+            }
+            res.json({ success: true, students: result });
+        }
+    );
+});
+
+// ================= START SERVER =================
+app.listen(PORT, () => {
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
 });

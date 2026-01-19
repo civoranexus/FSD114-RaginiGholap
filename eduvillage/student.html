@@ -11,6 +11,7 @@ body{display:flex;height:100vh;background: linear-gradient(135deg, #6e45e2, #88d
 .sidebar h2{text-align:center;margin-bottom:30px;font-family: "Lucida Handwriting";}
 .sidebar button{width:100%;padding:12px;margin:6px 0;border:none;background:#755dca;color:black;cursor:pointer;text-align:left;border-radius:5px;transition:0.3s;}
 .sidebar button:hover{background:#2a165f;color:white;}
+.sidebar button.active-btn{background:#2a165f;color:white;}
 .main{flex:1;padding:30px;overflow-y:auto;}
 .section{display:none;background: linear-gradient(135deg, #baa9c5, #88d3ce);padding:20px;border-radius:10px;box-shadow:0 4px 10px rgba(0,0,0,0.2);}
 .section.active{display:block;}
@@ -21,15 +22,13 @@ h2{margin-bottom:10px;}
 </style>
 </head>
 
-<body>
+<body onload="loadNotesForStudent()">
 <div class="sidebar">
     <h2>EduVillage</h2>
-    <button onclick="showSection('profile')">Profile</button>
-    <button onclick="showSection('assignment')">Assignments</button>
-    <button onclick="showSection('notes')">Notes</button>
-    <button onclick="showSection('pyq')">Previous Year Questions</button>
-    <button onclick="showSection('leaderboard')">Leaderboard</button>
-    <button onclick="showSection('feedback')">Feedback</button>
+    <button onclick="showSection('profile')" id="btn-profile">Profile</button>
+    <button onclick="showSection('assignment')" id="btn-assignment">Assignments</button>
+    <button onclick="showSection('notes')" id="btn-notes">Notes</button>
+    <button onclick="showSection('leaderboard')" id="btn-leaderboard">Leaderboard</button>
     <button onclick="logout()">Logout</button>
 </div>
 
@@ -42,11 +41,7 @@ h2{margin-bottom:10px;}
 
 <div id="assignment" class="section">
     <h2>Assignments</h2>
-    <ul>
-        <li>HTML Basics – Pending</li>
-        <li>CSS Styling – Submitted</li>
-        <li>JavaScript Intro – Pending</li>
-    </ul>
+    <ul id="assignmentList"></ul>
 </div>
 
 <div id="notes" class="section">
@@ -54,59 +49,121 @@ h2{margin-bottom:10px;}
     <ul id="notesList"></ul>
 </div>
 
-<div id="pyq" class="section">
-    <h2>Previous Year Questions</h2>
-    <ul>
-        <li>Web Development 2023</li>
-        <li>Database Management 2022</li>
-        <li>Python Programming 2021</li>
-    </ul>
-</div>
-
 <div id="leaderboard" class="section">
     <h2>Leaderboard</h2>
-    <ol id="leaderboardList">
-        <!-- Entries will be filled by JS -->
-    </ol>
+    <ol id="leaderboardList"></ol>
 </div>
 
-
-<div id="feedback" class="section">
-    <h2>Feedback</h2>
-    <textarea id="feedbackText" rows="5" placeholder="Enter your feedback"></textarea>
-    <br><br>
-    <button onclick="submitFeedback()">Submit</button>
 </div>
-</div>
-
-<script src="script.js"></script>
 <script>
-/* SECTION SWITCH */
+/* ================== SECTION SWITCH ================== */
 function showSection(id){
-    document.querySelectorAll('.section').forEach(sec=>sec.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
     document.getElementById(id).classList.add('active');
+
+    // Highlight active sidebar button
+    document.querySelectorAll('.sidebar button').forEach(btn => btn.classList.remove('active-btn'));
+    const btn = document.getElementById("btn-" + id);
+    if(btn) btn.classList.add('active-btn');
 }
 
-/* LOAD STUDENT DATA */
+/* ================== LOAD STUDENT PROFILE ================== */
 document.getElementById("studentName").innerText =
     localStorage.getItem("studentName") || "Student";
 document.getElementById("studentEmail").innerText =
     localStorage.getItem("studentEmail") || "Not Available";
 
-/* FEEDBACK SUBMISSION */
-function submitFeedback(){
-    let feedback = document.getElementById("feedbackText").value;
-    if(feedback===""){alert("Please enter feedback"); return;}
-    localStorage.setItem("studentFeedback", feedback);
-    alert("Feedback submitted successfully!");
-    document.getElementById("feedbackText").value="";
+/* ================== LOAD ASSIGNMENTS FROM BACKEND ================== */
+async function loadAssignments() {
+    const ul = document.getElementById("assignmentList");
+    ul.innerHTML = "<li>Loading assignments...</li>";
+
+    try {
+        const res = await fetch("http://localhost:3000/assignments"); // Make sure backend route exists
+        const data = await res.json();
+
+        ul.innerHTML = "";
+
+        if (data.success && data.assignments.length > 0) {
+            data.assignments.forEach(a => {
+                const li = document.createElement("li");
+                li.innerHTML = `<b>${a.title}</b> (${a.course_name})<br>${a.description}<br>By: ${a.teacher_name}`;
+                ul.appendChild(li);
+            });
+        } else {
+            ul.innerHTML = "<li>No assignments available yet</li>";
+        }
+    } catch (err) {
+        console.error("Assignments fetch error:", err);
+        ul.innerHTML = "<li>Error loading assignments. Try refreshing.</li>";
+    }
 }
 
-/* LOGOUT */
+/* ================== LOAD NOTES FROM BACKEND ================== */
+async function loadNotes() {
+    const notesList = document.getElementById("notesList");
+    notesList.innerHTML = "<li>Loading notes...</li>";
+
+    try {
+        const res = await fetch("http://localhost:3000/notes"); // Make sure backend route exists
+        const data = await res.json();
+
+        notesList.innerHTML = "";
+
+        if(data.success && data.notes.length > 0){
+            data.notes.forEach(n => {
+                const li = document.createElement("li");
+                li.innerHTML = `<b>By: ${n.teacher_name}</b> - ${n.content}`;
+                notesList.appendChild(li);
+            });
+        } else {
+            notesList.innerHTML = "<li>No notes available yet</li>";
+        }
+    } catch (err) {
+        console.error("Notes fetch error:", err);
+        notesList.innerHTML = "<li>Error loading notes. Try refreshing.</li>";
+    }
+}
+
+/* ================== LEADERBOARD (STATIC FOR NOW) ================== */
+const leaderboardData = [
+    {name: "Alice", score: 95},
+    {name: "Bob", score: 90},
+    {name: "Charlie", score: 85}
+];
+function loadLeaderboard() {
+    const list = document.getElementById("leaderboardList");
+    list.innerHTML = "";
+    leaderboardData.forEach(entry => {
+        const li = document.createElement("li");
+        li.innerText = `${entry.name} - ${entry.score} points`;
+        list.appendChild(li);
+    });
+}
+
+/* ================== FEEDBACK SUBMISSION ================== */
+function submitFeedback(){
+    const feedback = document.getElementById("feedbackText").value.trim();
+    if(feedback === "") { alert("Enter feedback"); return; }
+    localStorage.setItem("studentFeedback", feedback);
+    alert("Feedback submitted!");
+    document.getElementById("feedbackText").value = "";
+}
+
+/* ================== LOGOUT ================== */
 function logout(){
-    // Go back to combined login/register page
     window.location.href = "login_register.html";
 }
+
+/* ================== INITIAL LOAD ================== */
+window.addEventListener("DOMContentLoaded", () => {
+    loadAssignments();
+    loadNotes();
+    loadLeaderboard();
+    showSection('profile'); // default tab
+});
 </script>
+
+
 </body>
 </html>
