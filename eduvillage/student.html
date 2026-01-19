@@ -141,14 +141,8 @@ function loadLeaderboard() {
     });
 }
 
-/* ================== FEEDBACK SUBMISSION ================== */
-function submitFeedback(){
-    const feedback = document.getElementById("feedbackText").value.trim();
-    if(feedback === "") { alert("Enter feedback"); return; }
-    localStorage.setItem("studentFeedback", feedback);
-    alert("Feedback submitted!");
-    document.getElementById("feedbackText").value = "";
-}
+
+
 
 /* ================== LOGOUT ================== */
 function logout(){
