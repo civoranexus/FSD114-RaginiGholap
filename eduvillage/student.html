@@ -26,6 +26,7 @@ h2{margin-bottom:10px;}
 <div class="sidebar">
     <h2>EduVillage</h2>
     <button onclick="showSection('profile')" id="btn-profile">Profile</button>
+    <button onclick="showSection('openCourses')" id="btn-courses">Courses</button>
     <button onclick="showSection('assignment')" id="btn-assignment">Assignments</button>
     <button onclick="showSection('notes')" id="btn-notes">Notes</button>
     <button onclick="showSection('leaderboard')" id="btn-leaderboard">Leaderboard</button>
@@ -38,6 +39,15 @@ h2{margin-bottom:10px;}
     <p><b>Name:</b> <span id="studentName"></span></p>
     <p><b>Email:</b> <span id="studentEmail"></span></p>
 </div>
+
+<div id="openCourses" class="section">
+    <h2>My Courses</h2>
+    <ul id="studentCourseList">
+        <li>No courses enrolled yet</li>
+    </ul>
+</div>
+
+
 
 <div id="assignment" class="section">
     <h2>Assignments</h2>
@@ -61,17 +71,45 @@ function showSection(id){
     document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 
-    // Highlight active sidebar button
     document.querySelectorAll('.sidebar button').forEach(btn => btn.classList.remove('active-btn'));
     const btn = document.getElementById("btn-" + id);
     if(btn) btn.classList.add('active-btn');
+
+    if(id === "openCourses") {
+        loadStudentCourses();
+    }
 }
+
+
 
 /* ================== LOAD STUDENT PROFILE ================== */
 document.getElementById("studentName").innerText =
     localStorage.getItem("studentName") || "Student";
 document.getElementById("studentEmail").innerText =
     localStorage.getItem("studentEmail") || "Not Available";
+
+/* ================== STUDENT COURSES ================== */
+/* ================== LOAD ENROLLED COURSES ================== */
+function loadStudentCourses() {
+    const list = document.getElementById("studentCourseList");
+    const courses = JSON.parse(localStorage.getItem("enrolledCourses")) || [];
+
+    list.innerHTML = "";
+
+    if (courses.length === 0) {
+        list.innerHTML = "<li>No courses enrolled yet</li>";
+        return;
+    }
+
+    courses.forEach(course => {
+        const li = document.createElement("li");
+        li.innerText = course;
+        list.appendChild(li);
+    });
+}
+
+
+
 
 /* ================== LOAD ASSIGNMENTS FROM BACKEND ================== */
 async function loadAssignments() {
@@ -98,6 +136,7 @@ async function loadAssignments() {
         ul.innerHTML = "<li>Error loading assignments. Try refreshing.</li>";
     }
 }
+
 
 /* ================== LOAD NOTES FROM BACKEND ================== */
 async function loadNotes() {
