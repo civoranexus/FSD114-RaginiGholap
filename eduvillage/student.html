@@ -120,18 +120,40 @@ function goToCourses(){
 /* ================= ASSIGNMENTS ================= */
 async function loadAssignments(){
     const ul = document.getElementById("assignmentList");
+    const studentId = localStorage.getItem("studentId");
+
+    if(!studentId){
+        ul.innerHTML = "<li>Please login again</li>";
+        return;
+    }
+
     ul.innerHTML = "<li>Loading assignments...</li>";
-    const res = await fetch("http://localhost:3000/assignments");
-    const data = await res.json();
-    ul.innerHTML = "";
-    if(data.success){
+
+    try {
+        const res = await fetch(`http://localhost:3000/student/assignments/${studentId}`);
+        const data = await res.json();
+        ul.innerHTML = "";
+
+        if(!data.success || data.assignments.length === 0){
+            ul.innerHTML = "<li>No assignments for your courses</li>";
+            return;
+        }
+
         data.assignments.forEach(a=>{
             const li = document.createElement("li");
-            li.innerHTML = `<b>${a.title}</b> (${a.course_name})<br>${a.description}`;
+            li.innerHTML = `
+                <b>${a.title}</b> (${a.course_name})<br>
+                ${a.description}<br>
+                <small>Teacher: ${a.teacher_name}</small>
+            `;
             ul.appendChild(li);
         });
+
+    } catch(err){
+        ul.innerHTML = "<li>Server error loading assignments</li>";
     }
 }
+
 
 /* ================= NOTES ================= */
 async function loadNotes(){

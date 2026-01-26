@@ -43,7 +43,6 @@ async function studentLogin() {
     const data = await res.json();
 
     if (data.success) {
-        // ✅ SAVE DATA
         localStorage.setItem("studentName", data.student.name);
         localStorage.setItem("studentEmail", data.student.email);
 
@@ -53,9 +52,6 @@ async function studentLogin() {
         alert(data.message);
     }
 }
-
-
-
 
 // ================== TEACHER LOGIN ==================
 async function teacherLogin() {
@@ -71,7 +67,6 @@ async function teacherLogin() {
     const data = await res.json();
 
     if (data.success) {
-        // ✅ SAVE DATA
         localStorage.setItem("teacherName", data.name);
         localStorage.setItem("teacherEmail", data.email);
 
@@ -81,9 +76,6 @@ async function teacherLogin() {
         alert(data.message);
     }
 }
-
-
-
 
 // ================== STUDENT REGISTER ==================
 async function registerStudent() {
@@ -123,30 +115,27 @@ async function registerTeacher() {
     const data = await res.json();
     alert(data.message);
 }
+
 // ================= REGISTER TAB SWITCH =================
 const tabs = document.querySelectorAll(".tab");
 const forms = document.querySelectorAll(".form-container");
 
 tabs.forEach(tab => {
     tab.addEventListener("click", () => {
-        // remove active from all tabs
         tabs.forEach(t => t.classList.remove("active"));
         tab.classList.add("active");
 
-        // hide all forms
         forms.forEach(form => form.classList.remove("active"));
 
-        // show selected form
         const target = tab.getAttribute("data-tab");
         document.getElementById(target).classList.add("active");
     });
 });
 
-
 // ================= SAFE LOAD NOTES (STUDENT ONLY) =================
 async function loadNotesForStudent() {
     const notesContainer = document.getElementById("notesContainer");
-    if (!notesContainer) return; // ✅ prevents teacher page crash
+    if (!notesContainer) return;
 
     try {
         const res = await fetch("http://localhost:3000/notes");
@@ -179,6 +168,7 @@ async function loadNotesForStudent() {
         notesContainer.innerHTML = "<p>Server error</p>";
     }
 }
+
 // ================= LOAD ASSIGNMENTS FOR STUDENT =================
 async function loadStudentAssignments() {
     const container = document.getElementById("assignmentsContainer");
@@ -205,3 +195,9 @@ async function loadStudentAssignments() {
         `;
     });
 }
+
+// ✅ AUTO LOAD WHEN PAGE OPENS (SAFE FOR ALL PAGES)
+document.addEventListener("DOMContentLoaded", () => {
+    loadNotesForStudent();
+    loadStudentAssignments();
+});
