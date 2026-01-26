@@ -196,7 +196,7 @@ async function loadStudentAssignments() {
     });
 }
 
-// ✅ AUTO LOAD WHEN PAGE OPENS (SAFE FOR ALL PAGES)
+//  AUTO LOAD WHEN PAGE OPENS (SAFE FOR ALL PAGES)
 document.addEventListener("DOMContentLoaded", () => {
     loadNotesForStudent();
     loadStudentAssignments();
