@@ -45,7 +45,7 @@ app.post("/student/register", async (req, res) => {
 });
 
 // =====================================================
-// ================= STUDENT LOGIN (UPDATED) ===========
+// ================= STUDENT LOGIN =====================
 // =====================================================
 app.post("/student/login", (req, res) => {
     const { email, password } = req.body;
@@ -61,7 +61,7 @@ app.post("/student/login", (req, res) => {
         res.json({
             success: true,
             student: {
-                id: result[0].id,   // ✅ IMPORTANT
+                id: result[0].id,
                 name: result[0].name,
                 email: result[0].email
             }
@@ -78,9 +78,7 @@ app.post("/student/courses", (req, res) => {
     if (!courses || courses.length === 0)
         return res.json({ success: false });
 
-    // Remove old courses first
     db.query("DELETE FROM student_courses WHERE student_id = ?", [student_id], () => {
-
         const values = courses.map(course => [student_id, course]);
 
         db.query(
@@ -215,6 +213,28 @@ app.get("/notes", (req, res) => {
 });
 
 
-// ================= START SERVER ======================
 // =====================================================
+// ========== 🆕 GET STUDENTS BY COURSE =================
+// =====================================================
+app.get("/course/students/:courseName", (req, res) => {
+    const courseName = req.params.courseName;
+
+    db.query(
+        `SELECT s.id, s.name, s.email, s.education, s.field
+         FROM student s
+         JOIN student_courses sc ON s.id = sc.student_id
+         WHERE sc.course_name = ?`,
+        [courseName],
+        (err, result) => {
+            if (err) {
+                console.log(err);
+                return res.json({ success: false });
+            }
+            res.json({ success: true, students: result });
+        }
+    );
+});
+
+
+// ================= START SERVER ======================
 app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
