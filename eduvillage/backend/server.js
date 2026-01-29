@@ -75,17 +75,28 @@ app.post("/student/login", (req, res) => {
 app.post("/student/courses", (req, res) => {
     const { student_id, courses } = req.body;
 
-    if (!courses || courses.length === 0)
-        return res.json({ success: false });
+    console.log("Incoming enrollment:", student_id, courses);
 
-    db.query("DELETE FROM student_courses WHERE student_id = ?", [student_id], () => {
+    if (!courses || courses.length === 0)
+        return res.json({ success: false, message: "No courses received" });
+
+    db.query("DELETE FROM student_courses WHERE student_id = ?", [student_id], (delErr) => {
+        if (delErr) {
+            console.log("Delete Error:", delErr);
+            return res.json({ success: false, message: "Delete failed" });
+        }
+
         const values = courses.map(course => [student_id, course]);
 
         db.query(
             "INSERT INTO student_courses (student_id, course_name) VALUES ?",
             [values],
             (err) => {
-                if (err) return res.json({ success: false });
+                if (err) {
+                    console.log("Insert Error:", err);  // 👈 THIS WILL SHOW REAL PROBLEM
+                    return res.json({ success: false, message: "Insert failed" });
+                }
+                console.log("Enrollment saved!");
                 res.json({ success: true });
             }
         );
