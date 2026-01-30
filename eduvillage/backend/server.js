@@ -45,7 +45,7 @@ app.post("/student/register", async (req, res) => {
 });
 
 // =====================================================
-// ================= STUDENT LOGIN =====================
+// ================= STUDENT LOGIN (UPDATED) ===========
 // =====================================================
 app.post("/student/login", (req, res) => {
     const { email, password } = req.body;
@@ -61,7 +61,7 @@ app.post("/student/login", (req, res) => {
         res.json({
             success: true,
             student: {
-                id: result[0].id,
+                id: result[0].id,   // ✅ IMPORTANT
                 name: result[0].name,
                 email: result[0].email
             }
@@ -75,16 +75,11 @@ app.post("/student/login", (req, res) => {
 app.post("/student/courses", (req, res) => {
     const { student_id, courses } = req.body;
 
-    console.log("Incoming enrollment:", student_id, courses);
-
     if (!courses || courses.length === 0)
-        return res.json({ success: false, message: "No courses received" });
+        return res.json({ success: false });
 
-    db.query("DELETE FROM student_courses WHERE student_id = ?", [student_id], (delErr) => {
-        if (delErr) {
-            console.log("Delete Error:", delErr);
-            return res.json({ success: false, message: "Delete failed" });
-        }
+    // Remove old courses first
+    db.query("DELETE FROM student_courses WHERE student_id = ?", [student_id], () => {
 
         const values = courses.map(course => [student_id, course]);
 
@@ -92,11 +87,7 @@ app.post("/student/courses", (req, res) => {
             "INSERT INTO student_courses (student_id, course_name) VALUES ?",
             [values],
             (err) => {
-                if (err) {
-                    console.log("Insert Error:", err);  // 👈 THIS WILL SHOW REAL PROBLEM
-                    return res.json({ success: false, message: "Insert failed" });
-                }
-                console.log("Enrollment saved!");
+                if (err) return res.json({ success: false });
                 res.json({ success: true });
             }
         );
@@ -224,28 +215,6 @@ app.get("/notes", (req, res) => {
 });
 
 
-// =====================================================
-// ========== 🆕 GET STUDENTS BY COURSE =================
-// =====================================================
-app.get("/course/students/:courseName", (req, res) => {
-    const courseName = req.params.courseName;
-
-    db.query(
-        `SELECT s.id, s.name, s.email, s.education, s.field
-         FROM student s
-         JOIN student_courses sc ON s.id = sc.student_id
-         WHERE sc.course_name = ?`,
-        [courseName],
-        (err, result) => {
-            if (err) {
-                console.log(err);
-                return res.json({ success: false });
-            }
-            res.json({ success: true, students: result });
-        }
-    );
-});
-
-
 // ================= START SERVER ======================
+// =====================================================
 app.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
