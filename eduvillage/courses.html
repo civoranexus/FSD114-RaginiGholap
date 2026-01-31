@@ -88,7 +88,6 @@
 </div>
 
 <script>
-
 /* ---------- LOGIN CHECK ---------- */
 const studentName = localStorage.getItem("studentName");
 if (!studentName) {
@@ -96,52 +95,48 @@ if (!studentName) {
     window.location.href = "index.html";
 }
 
-/* ---------- LOAD COURSES FROM DATABASE ---------- */
+/* ---------- COURSE DATA ---------- */
+const courses = [
+    { id: 1, title: "Web Development", desc: "HTML, CSS, JavaScript fundamentals" },
+    { id: 2, title: "Data Structures", desc: "Stacks, queues, trees, graphs" },
+    { id: 3, title: "Python Programming", desc: "Python basics to advanced" },
+    { id: 4, title: "Database Management", desc: "SQL, normalization, DB design" }
+];
+
+/* ---------- LOAD COURSES ---------- */
 function loadCourses() {
-    fetch("http://localhost:3000/courses")
-        .then(res => res.json())
-        .then(data => {
-            if (!data.success) {
-                alert("Failed to load courses");
-                return;
-            }
+    const container = document.getElementById("courseContainer");
+    container.innerHTML = "";
 
-            const container = document.getElementById("courseContainer");
-            container.innerHTML = "";
-
-            data.courses.forEach(course => {
-                const div = document.createElement("div");
-                div.className = "course-card";
-                div.innerHTML = `
-                    <h3>${course.course_name}</h3>
-                    <p>Click enroll to access notes & assignments</p>
-                    <button onclick="enrollCourse('${course.course_name}')">
-                        Enroll
-                    </button>
-                `;
-                container.appendChild(div);
-            });
-        });
+    courses.forEach(course => {
+        const div = document.createElement("div");
+        div.className = "course-card";
+        div.innerHTML = `
+            <h3>${course.title}</h3>
+            <p>${course.desc}</p>
+            <button onclick="enrollCourse('${course.title}')">Enroll</button>
+        `;
+        container.appendChild(div);
+    });
 }
 
+/* ---------- ENROLL ---------- */
 function enrollCourse(courseName) {
-    let enrolledCourses = JSON.parse(localStorage.getItem("enrolledCourses")) || [];
+    let enrolled = JSON.parse(localStorage.getItem("enrolledCourses")) || [];
 
-    if (!enrolledCourses.includes(courseName)) {
-        enrolledCourses.push(courseName);
-        localStorage.setItem("enrolledCourses", JSON.stringify(enrolledCourses));
-        alert("Enrolled Successfully in " + courseName);
-    } else {
-        alert("You already enrolled in this course");
+    if (enrolled.includes(courseName)) {
+        alert("Already enrolled in this course");
+        return;
     }
+
+    enrolled.push(courseName);
+    localStorage.setItem("enrolledCourses", JSON.stringify(enrolled));
+
+    alert(`Enrolled successfully in ${courseName}`);
 }
-
-
 
 loadCourses();
 </script>
-
-
 
 </body>
 </html>
