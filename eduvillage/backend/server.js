@@ -310,24 +310,26 @@ app.get("/student/courses/:email", (req, res) => {
 
 /* ================= ASSIGNMENTS ================= */
 app.post("/assignment/add", (req, res) => {
-    const { title, description, course_id, teacher_name } = req.body;
+    const { title, description, course_id } = req.body;
 
-    if (!title || !course_id || !teacher_name) {
+    if (!title || !course_id) {
         return res.json({ success: false, message: "Missing data" });
     }
 
-    db.query(
-        "INSERT INTO assignments (title, description, course_id, teacher_name) VALUES (?, ?, ?, ?)",
-        [title, description, course_id, teacher_name],
-        err => {
-            if (err) {
-                console.log(err);
-                return res.json({ success: false });
-            }
-            res.json({ success: true });
+    const sql = `
+        INSERT INTO assignments (title, description, course_id)
+        VALUES (?, ?, ?)
+    `;
+
+    db.query(sql, [title, description, course_id], err => {
+        if (err) {
+            console.log(err);
+            return res.json({ success: false });
         }
-    );
+        res.json({ success: true });
+    });
 });
+
 
 /* ================= GET ASSIGNMENTS FOR STUDENT ================= */
 app.get("/assignments/student/:email", (req, res) => {
@@ -338,9 +340,10 @@ app.get("/assignments/student/:email", (req, res) => {
             a.title,
             a.description,
             c.course_name,
-            a.teacher_name
+            t.name AS teacher_name
         FROM assignments a
         JOIN courses c ON a.course_id = c.id
+        JOIN teacher t ON c.teacher_id = t.id
         JOIN student_courses sc ON sc.course_id = c.id
         JOIN student s ON sc.student_id = s.id
         WHERE s.email = ?
@@ -358,6 +361,7 @@ app.get("/assignments/student/:email", (req, res) => {
         });
     });
 });
+
 
 
 /* ================= NOTES ================= */
