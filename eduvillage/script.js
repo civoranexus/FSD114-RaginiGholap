@@ -165,33 +165,33 @@ if (tabs.length > 0 && forms.length > 0) {
 
 // ================= SAFE LOAD NOTES (STUDENT ONLY) =================
 async function loadNotesForStudent() {
+    const email = localStorage.getItem("studentEmail");
     const notesContainer = document.getElementById("notesContainer");
-    if (!notesContainer) return;
 
-    try {
-        const res = await fetch("http://localhost:3000/notes");
-        const data = await res.json();
+    if (!email || !notesContainer) return;
 
-        if (!data.success || data.notes.length === 0) {
-            notesContainer.innerHTML = "<p>No notes available</p>";
-            return;
-        }
+    const res = await fetch(`http://localhost:3000/notes/student/${email}`);
+    const data = await res.json();
 
-        notesContainer.innerHTML = "";
+    notesContainer.innerHTML = "";
+
+    if (data.success && data.notes.length > 0) {
         data.notes.forEach(note => {
             const div = document.createElement("div");
             div.className = "note-card";
             div.innerHTML = `
-                <h4>Teacher: ${note.teacher_name}</h4>
+                <h4>${note.course_name}</h4>
                 <p>${note.content}</p>
+                <small>By ${note.teacher_name}</small><br>
                 <small>${new Date(note.created_at).toLocaleString()}</small>
             `;
             notesContainer.appendChild(div);
         });
-    } catch (err) {
-        notesContainer.innerHTML = "<p>Server error</p>";
+    } else {
+        notesContainer.innerHTML = "<p>No notes available</p>";
     }
 }
+
 
 // ================= LOAD ASSIGNMENTS FOR STUDENT =================
 async function loadAssignments() {

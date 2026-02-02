@@ -366,15 +366,15 @@ app.get("/assignments/student/:email", (req, res) => {
 
 /* ================= NOTES ================= */
 app.post("/notes", (req, res) => {
-    const { teacherName, content } = req.body;
+    const { teacherName, content, course_id } = req.body;
 
-    if (!teacherName || !content) {
-        return res.json({ success: false });
+    if (!teacherName || !content || !course_id) {
+        return res.json({ success: false, message: "Missing data" });
     }
 
     db.query(
-        "INSERT INTO notes (teacher_name, content) VALUES (?, ?)",
-        [teacherName, content],
+        "INSERT INTO notes (teacher_name, content, course_id) VALUES (?, ?, ?)",
+        [teacherName, content, course_id],
         err => {
             if (err) return res.json({ success: false });
             res.json({ success: true });
@@ -382,12 +382,26 @@ app.post("/notes", (req, res) => {
     );
 });
 
-app.get("/notes", (req, res) => {
-    db.query("SELECT * FROM notes", (err, result) => {
+
+app.get("/notes/student/:email", (req, res) => {
+    const email = req.params.email;
+
+    const sql = `
+        SELECT n.content, n.teacher_name, c.course_name, n.created_at
+        FROM notes n
+        JOIN courses c ON n.course_id = c.id
+        JOIN student_courses sc ON sc.course_id = c.id
+        JOIN student s ON sc.student_id = s.id
+        WHERE s.email = ?
+        ORDER BY n.created_at DESC
+    `;
+
+    db.query(sql, [email], (err, result) => {
         if (err) return res.json({ success: false });
         res.json({ success: true, notes: result });
     });
 });
+
 
 
 

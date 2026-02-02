@@ -67,8 +67,13 @@ li button:hover{background:#755dca;}
     <div id="notes" class="section">
         <h3>Upload Notes</h3>
         <textarea id="notesText" rows="4" placeholder="Enter notes content"></textarea>
+
+        <!-- NEW: course dropdown -->
+        <select id="notesCourse"></select>
+
         <button class="action" onclick="saveNotes()">Save Notes</button>
     </div>
+
 
     <div id="students" class="section">
         <h3>Students List</h3>
@@ -147,12 +152,12 @@ async function createAssignment() {
 }
 
 /* ✅ LOAD COURSES INTO DROPDOWN */
-async function loadTeacherCoursesForAssignment() {
+async function loadTeacherCoursesForNotes() {
     const teacherId = localStorage.getItem("teacherId");
     const res = await fetch(`http://localhost:3000/courses/teacher/${teacherId}`);
     const data = await res.json();
 
-    const select = document.getElementById("assignmentCourse");
+    const select = document.getElementById("notesCourse");
     select.innerHTML = "";
 
     if (data.success) {
@@ -165,24 +170,32 @@ async function loadTeacherCoursesForAssignment() {
     }
 }
 
+
 function saveNotes(){
     const notes = document.getElementById("notesText").value.trim();
     const teacherName = localStorage.getItem("teacherName");
+    const courseId = document.getElementById("notesCourse").value;
+
     if(notes === "") return alert("Enter notes");
 
     fetch("http://localhost:3000/notes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teacherName, content: notes })
+        body: JSON.stringify({
+            teacherName,
+            content: notes,
+            course_id: courseId
+        })
     })
     .then(res => res.json())
     .then(data => {
         if(data.success){
-            alert("Notes saved to database!");
+            alert("Notes saved successfully!");
             document.getElementById("notesText").value = "";
         } else alert("Error saving notes");
     });
 }
+
 
 function logout(){
     localStorage.clear();
@@ -193,6 +206,8 @@ function logout(){
 window.addEventListener("DOMContentLoaded", () => {
     loadCourses();
     loadTeacherCoursesForAssignment();  // 🔥 important
+    loadTeacherCoursesForNotes(); 
+
 });
 </script>
 </body>
