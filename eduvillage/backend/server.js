@@ -365,42 +365,42 @@ app.get("/assignments/student/:email", (req, res) => {
 
 
 /* ================= NOTES ================= */
-app.post("/notes", (req, res) => {
-    const { teacherName, content, course_id } = req.body;
 
-    if (!teacherName || !content || !course_id) {
+// ================= ADD NOTE =================
+app.post("/add-note", (req, res) => {
+    const { teacher_email, teacher_name, course_name, content } = req.body;
+
+    if (!teacher_email || !course_name || !content) {
         return res.json({ success: false, message: "Missing data" });
     }
 
-    db.query(
-        "INSERT INTO notes (teacher_name, content, course_id) VALUES (?, ?, ?)",
-        [teacherName, content, course_id],
-        err => {
-            if (err) return res.json({ success: false });
-            res.json({ success: true });
-        }
-    );
+    const sql = "INSERT INTO notes (teacher_email, teacher_name, course_name, content) VALUES (?, ?, ?, ?)";
+    db.query(sql, [teacher_email, teacher_name, course_name, content], (err) => {
+        if (err) return res.json({ success: false, error: err });
+        res.json({ success: true, message: "Note added successfully" });
+    });
 });
 
 
+
+
+// ================= GET NOTES FOR STUDENT =================
 app.get("/notes/student/:email", (req, res) => {
-    const email = req.params.email;
+    const studentEmail = req.params.email;
 
     const sql = `
-        SELECT n.content, n.teacher_name, c.course_name, n.created_at
-        FROM notes n
-        JOIN courses c ON n.course_id = c.id
-        JOIN student_courses sc ON sc.course_id = c.id
-        JOIN student s ON sc.student_id = s.id
-        WHERE s.email = ?
+        SELECT n.* FROM notes n
+        JOIN student_courses sc ON n.course_name = sc.course_name
+        WHERE sc.student_email = ?
         ORDER BY n.created_at DESC
     `;
 
-    db.query(sql, [email], (err, result) => {
-        if (err) return res.json({ success: false });
+    db.query(sql, [studentEmail], (err, result) => {
+        if (err) return res.json({ success: false, error: err });
         res.json({ success: true, notes: result });
     });
 });
+
 
 
 

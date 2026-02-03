@@ -33,7 +33,7 @@ h2{margin-bottom:10px;}
     <!-- ✅ ASSIGNMENTS BUTTON -->
     <button onclick="openAssignments()" id="btn-assignment">Assignments</button>
 
-    <button onclick="showSection('notes')" id="btn-notes">Notes</button>
+    <button onclick="openNotes()" id="btn-notes">Notes</button>
     <button onclick="showSection('leaderboard')" id="btn-leaderboard">Leaderboard</button>
     <button onclick="logout()">Logout</button>
 </div>
@@ -200,20 +200,41 @@ async function loadAssignments() {
 }
 
 /* ================= LOAD NOTES ================= */
+/* ================= LOAD NOTES ================= */
 async function loadNotes() {
     const ul = document.getElementById("notesList");
-    const res = await fetch("http://localhost:3000/notes");
+    ul.innerHTML = "<li>Loading notes...</li>";
+
+    const res = await fetch(`http://localhost:3000/notes/student/${studentEmail}`);
     const data = await res.json();
 
     ul.innerHTML = "";
-    if(data.success){
-        data.notes.forEach(n=>{
+
+    if (data.success && data.notes.length > 0) {
+        data.notes.forEach(n => {
             const li = document.createElement("li");
-            li.textContent = n.teacher_name + " : " + n.content;
+            li.innerHTML = `
+                <b>${n.course_name}</b><br>
+                ${n.content}<br>
+                <small>By ${n.teacher_name}</small>
+                <hr>
+            `;
             ul.appendChild(li);
         });
+    } else {
+        ul.innerHTML = "<li>No notes available</li>";
     }
 }
+
+function openNotes() {
+    showSection('notes');
+    loadNotes(); // ⭐ this reloads latest notes
+}
+
+
+
+
+
 
 /* ================= LEADERBOARD ================= */
 function loadLeaderboard(){

@@ -163,34 +163,37 @@ if (tabs.length > 0 && forms.length > 0) {
     });
 }
 
+
 // ================= SAFE LOAD NOTES (STUDENT ONLY) =================
 async function loadNotesForStudent() {
-    const email = localStorage.getItem("studentEmail");
     const notesContainer = document.getElementById("notesContainer");
+    const email = localStorage.getItem("studentEmail");
 
-    if (!email || !notesContainer) return;
+    if (!email) return;
 
     const res = await fetch(`http://localhost:3000/notes/student/${email}`);
     const data = await res.json();
 
-    notesContainer.innerHTML = "";
-
-    if (data.success && data.notes.length > 0) {
-        data.notes.forEach(note => {
-            const div = document.createElement("div");
-            div.className = "note-card";
-            div.innerHTML = `
-                <h4>${note.course_name}</h4>
-                <p>${note.content}</p>
-                <small>By ${note.teacher_name}</small><br>
-                <small>${new Date(note.created_at).toLocaleString()}</small>
-            `;
-            notesContainer.appendChild(div);
-        });
-    } else {
+    if (!data.success || data.notes.length === 0) {
         notesContainer.innerHTML = "<p>No notes available</p>";
+        return;
     }
+
+    notesContainer.innerHTML = "";
+    data.notes.forEach(note => {
+        const div = document.createElement("div");
+        div.className = "note-card";
+        div.innerHTML = `
+            <h4>${note.course_name}</h4>
+            <p>${note.content}</p>
+            <small>By ${note.teacher_name}</small><br>
+            <small>${new Date(note.created_at).toLocaleString()}</small>
+        `;
+        notesContainer.appendChild(div);
+    });
 }
+
+
 
 
 // ================= LOAD ASSIGNMENTS FOR STUDENT =================
