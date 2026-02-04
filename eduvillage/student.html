@@ -213,18 +213,35 @@ async function loadNotes() {
     if (data.success && data.notes.length > 0) {
         data.notes.forEach(n => {
             const li = document.createElement("li");
+
+            li.style.listStyle = "none";
+            li.style.background = "white";
+            li.style.padding = "12px";
+            li.style.marginBottom = "12px";
+            li.style.borderRadius = "8px";
+            li.style.boxShadow = "0 2px 6px rgba(0,0,0,0.15)";
+            li.style.fontSize = "14px";
+            li.style.lineHeight = "1.5";
+
             li.innerHTML = `
-                <b>${n.course_name}</b><br>
-                ${n.content}<br>
-                <small>By ${n.teacher_name}</small>
-                <hr>
+                <div style="font-size:16px; font-weight:bold; color:#472e9f; margin-bottom:6px;">
+                    ${n.course_name}
+                </div>
+                <div style="margin-bottom:8px; white-space:pre-wrap;">
+                    ${n.content}
+                </div>
+                <div style="font-size:12px; color:gray;">
+                    By ${n.teacher_name}
+                </div>
             `;
+
             ul.appendChild(li);
         });
     } else {
-        ul.innerHTML = "<li>No notes available</li>";
+        ul.innerHTML = "<li style='list-style:none;'>No notes available</li>";
     }
 }
+
 
 function openNotes() {
     showSection('notes');

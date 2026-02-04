@@ -366,38 +366,86 @@ app.get("/assignments/student/:email", (req, res) => {
 
 /* ================= NOTES ================= */
 
-// ================= ADD NOTE =================
-app.post("/add-note", (req, res) => {
-    const { teacher_email, teacher_name, course_name, content } = req.body;
 
-    if (!teacher_email || !course_name || !content) {
+
+// ✅ ADD NOTE (Teacher adds note using IDs)
+app.post("/notes", (req, res) => {
+    const { teacher_id, course_id, content } = req.body;
+
+    if (!teacher_id || !course_id || !content) {
         return res.json({ success: false, message: "Missing data" });
     }
 
-    const sql = "INSERT INTO notes (teacher_email, teacher_name, course_name, content) VALUES (?, ?, ?, ?)";
-    db.query(sql, [teacher_email, teacher_name, course_name, content], (err) => {
-        if (err) return res.json({ success: false, error: err });
+    const sql = `
+        INSERT INTO notes (teacher_id, course_id, content, created_at)
+        VALUES (?, ?, ?, NOW())
+    `;
+
+    db.query(sql, [teacher_id, course_id, content], (err) => {
+        if (err) {
+            console.log("❌ Add Note Error:", err);
+            return res.json({ success: false });
+        }
         res.json({ success: true, message: "Note added successfully" });
     });
 });
 
 
-
-
-// ================= GET NOTES FOR STUDENT =================
+// ✅ GET NOTES FOR STUDENT (Only enrolled course notes)
 app.get("/notes/student/:email", (req, res) => {
-    const studentEmail = req.params.email;
+    const email = req.params.email;
 
     const sql = `
-        SELECT n.* FROM notes n
-        JOIN student_courses sc ON n.course_name = sc.course_name
-        WHERE sc.student_email = ?
+        SELECT 
+            n.content,
+            c.course_name,
+            t.name AS teacher_name,
+            n.created_at
+        FROM notes n
+        JOIN courses c ON n.course_id = c.id
+        JOIN teacher t ON n.teacher_id = t.id
+        JOIN student_courses sc ON sc.course_id = c.id
+        JOIN student s ON sc.student_id = s.id
+        WHERE s.email = ?
         ORDER BY n.created_at DESC
     `;
 
-    db.query(sql, [studentEmail], (err, result) => {
-        if (err) return res.json({ success: false, error: err });
-        res.json({ success: true, notes: result });
+    db.query(sql, [email], (err, result) => {
+        if (err) {
+            console.log("❌ Fetch Notes Error:", err);
+            return res.json({ success: false });
+        }
+
+        res.json({
+            success: true,
+            notes: result
+        });
+    });
+});
+
+/* ================= GET STUDENTS BY COURSE (FOR TEACHER) ================= */
+
+app.get("/teacher/students/:courseId", (req, res) => {
+    const courseId = req.params.courseId;
+
+    const sql = `
+        SELECT s.name, s.email
+        FROM student_courses sc
+        JOIN student s ON sc.student_id = s.id
+        WHERE sc.course_id = ?
+    `;
+
+    db.query(sql, [courseId], (err, result) => {
+        if (err) {
+            console.log("❌ Fetch Students Error:", err);
+            return res.json({ success: false });
+        }
+
+        console.log("📌 Students Found:", result); // 👈 ADD THIS LINE
+        res.json({
+            success: true,
+            students: result
+        });
     });
 });
 
