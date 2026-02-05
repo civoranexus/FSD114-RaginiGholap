@@ -34,7 +34,7 @@ h2{margin-bottom:10px;}
     <button onclick="openAssignments()" id="btn-assignment">Assignments</button>
 
     <button onclick="openNotes()" id="btn-notes">Notes</button>
-    <button onclick="showSection('leaderboard')" id="btn-leaderboard">Leaderboard</button>
+    <button onclick="loadLeaderboard()" id="btn-leaderboard">Leaderboard</button>
     <button onclick="logout()">Logout</button>
 </div>
 
@@ -254,19 +254,57 @@ function openNotes() {
 
 
 /* ================= LEADERBOARD ================= */
-function loadLeaderboard(){
-    const list = document.getElementById("leaderboardList");
-    list.innerHTML="";
-    [
-        {name:"Alice",score:95},
-        {name:"Bob",score:90},
-        {name:"Charlie",score:85}
-    ].forEach(l=>{
-        const li=document.createElement("li");
-        li.textContent=`${l.name} - ${l.score}`;
-        list.appendChild(li);
-    });
+async function loadLeaderboard() {
+    showSection('leaderboard');
+
+    const ul = document.getElementById("leaderboardList");
+    ul.innerHTML = "<li>Loading leaderboard...</li>";
+
+    // First get student courses
+    const resCourses = await fetch(`http://localhost:3000/student/courses/${studentEmail}`);
+    const dataCourses = await resCourses.json();
+
+    if (!dataCourses.success || dataCourses.courses.length === 0) {
+        ul.innerHTML = "<li>No enrolled course</li>";
+        return;
+    }
+
+    // Use first enrolled course
+    const courseName = dataCourses.courses[0].course_name;
+
+    // Get all courses to find course_id
+    const resAll = await fetch("http://localhost:3000/courses");
+    const dataAll = await resAll.json();
+
+    const course = dataAll.courses.find(c => c.course_name === courseName);
+    if (!course) {
+        ul.innerHTML = "<li>Course not found</li>";
+        return;
+    }
+
+    // Fetch leaderboard from server
+    const res = await fetch(`http://localhost:3000/leaderboard/${course.id}`);
+    const data = await res.json();
+
+    ul.innerHTML = "";
+
+    if (data.success && data.leaderboard.length > 0) {
+        data.leaderboard.forEach((s, index) => {
+            const li = document.createElement("li");
+
+            let trophy = "";
+            if (index === 0) trophy = "🥇 ";
+            else if (index === 1) trophy = "🥈 ";
+            else if (index === 2) trophy = "🥉 ";
+
+            li.innerHTML = `${trophy}<b>${s.name}</b> (${s.email}) — ${s.marks} Marks`;
+            ul.appendChild(li);
+        });
+    } else {
+        ul.innerHTML = "<li>No scores available</li>";
+    }
 }
+
 
 /* ================= LOGOUT ================= */
 function logout(){

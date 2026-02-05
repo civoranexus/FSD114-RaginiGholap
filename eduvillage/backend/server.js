@@ -449,6 +449,30 @@ app.get("/teacher/students/:courseId", (req, res) => {
     });
 });
 
+/* ================= LEADERBOARD ================= */
+app.get("/leaderboard/:courseId", (req, res) => {
+    const courseId = req.params.courseId;
+
+    const sql = `
+        SELECT s.name, s.email, r.marks
+        FROM results r
+        JOIN student s ON r.student_id = s.id
+        WHERE r.course_id = ?
+        ORDER BY r.marks DESC
+    `;
+
+    db.query(sql, [courseId], (err, result) => {
+        if (err) {
+            console.log("❌ Leaderboard Error:", err);
+            return res.json({ success: false });
+        }
+
+        res.json({
+            success: true,
+            leaderboard: result
+        });
+    });
+});
 
 
 

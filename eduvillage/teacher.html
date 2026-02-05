@@ -30,6 +30,7 @@ li{margin:5px 0;}
     <button onclick="showSection('assignment')">Create Assignment</button>
     <button onclick="showSection('notes')">Upload Notes</button>
     <button onclick="openStudents()">View Students</button>
+    <button onclick="openLeaderboard()">Leaderboard</button>
     <button onclick="logout()">Logout</button>
 </div>
 
@@ -71,6 +72,12 @@ li{margin:5px 0;}
 
         <ul id="studentList"></ul>
     </div>
+
+    <div id="leaderboard" class="section">
+        <h3>Course Leaderboard</h3>
+        <ul id="leaderboardList"></ul>
+    </div>
+
 </div>
 
 <script>
@@ -183,6 +190,53 @@ async function loadStudentsByCourse() {
         ul.innerHTML = "<li>No students enrolled</li>";
     }
 }
+async function openLeaderboard() {
+    showSection('leaderboard');
+
+    const teacherId = localStorage.getItem("teacherId");
+    const ul = document.getElementById("leaderboardList");
+    ul.innerHTML = "<li>Loading leaderboard...</li>";
+
+    // get teacher course
+    const resCourse = await fetch(`http://localhost:3000/courses/teacher/${teacherId}`);
+    const dataCourse = await resCourse.json();
+
+    if (!dataCourse.success || dataCourse.courses.length === 0) {
+        ul.innerHTML = "<li>No course found</li>";
+        return;
+    }
+
+    const courseId = dataCourse.courses[0].id;
+
+    // get leaderboard
+    const res = await fetch(`http://localhost:3000/leaderboard/${courseId}`);
+    const data = await res.json();
+
+    ul.innerHTML = "";
+
+    if (data.success && data.leaderboard.length > 0) {
+        data.leaderboard.forEach((s, index) => {
+            const li = document.createElement("li");
+
+            let trophy = "";
+            if (index === 0) trophy = "🥇 ";
+            else if (index === 1) trophy = "🥈 ";
+            else if (index === 2) trophy = "🥉 ";
+
+            li.innerHTML = `
+                ${trophy}<b>#${index + 1}</b> 
+                ${s.name} (${s.email}) — 
+                <b>${s.marks} Marks</b>
+            `;
+
+            ul.appendChild(li);
+        });
+    } else {
+        ul.innerHTML = "<li>No scores available</li>";
+    }
+}
+
+
 
 function openStudents(){
     showSection('students');
