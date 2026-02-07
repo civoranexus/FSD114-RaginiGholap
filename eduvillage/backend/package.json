@@ -7,8 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "start": "node server.js"
   },
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/civoranexus/FSD114-RaginiGholap.git"
