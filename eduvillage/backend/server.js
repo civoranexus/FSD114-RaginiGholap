@@ -4,7 +4,8 @@ const bcrypt = require("bcryptjs");
 const mysql = require("mysql2");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+
 
 app.use(cors());
 app.use(express.json());
@@ -19,7 +20,8 @@ const db = mysql.createConnection({
 
 db.connect(err => {
     if (err) {
-        console.log("❌ DB Error:", err);
+        console.log("❌ DB Error:", er
+            r);
     } else {
         console.log("✅ MySQL Connected");
     }
