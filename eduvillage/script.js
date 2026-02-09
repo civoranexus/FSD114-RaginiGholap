@@ -1,3 +1,6 @@
+// ================== API BASE URL ==================
+const API_BASE_URL = "https://edr-idsk.onrender.com";
+
 // ================== SHOW LOGIN FORMS ==================
 function showLoginForm(type) {
     const studentForm = document.getElementById("student-form");
@@ -24,21 +27,13 @@ function togglePassword(id) {
 
 // ================== PAGE SWITCH ==================
 function showRegisterPage() {
-    const login = document.getElementById("login-container");
-    const register = document.getElementById("register-container");
-    if (!login || !register) return;
-
-    login.style.display = "none";
-    register.style.display = "block";
+    document.getElementById("login-container").style.display = "none";
+    document.getElementById("register-container").style.display = "block";
 }
 
 function showLoginPage() {
-    const login = document.getElementById("login-container");
-    const register = document.getElementById("register-container");
-    if (!login || !register) return;
-
-    register.style.display = "none";
-    login.style.display = "block";
+    document.getElementById("register-container").style.display = "none";
+    document.getElementById("login-container").style.display = "block";
 }
 
 // ================== STUDENT LOGIN ==================
@@ -46,7 +41,7 @@ async function studentLogin() {
     const email = document.getElementById("sEmail").value;
     const password = document.getElementById("sPass").value;
 
-    const res = await fetch("http://localhost:3000/student/login", {
+    const res = await fetch(`${API_BASE_URL}/student/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
@@ -55,131 +50,92 @@ async function studentLogin() {
     const data = await res.json();
 
     if (data.success) {
-        // ✅ THESE TWO LINES ARE MANDATORY
         localStorage.setItem("studentName", data.student.name);
         localStorage.setItem("studentEmail", data.student.email);
-
-        // ❗ DO NOT CLEAR localStorage ANYWHERE
         window.location.href = "student.html";
     } else {
         alert(data.message);
     }
 }
 
-
-
 // ================== TEACHER LOGIN ==================
 async function teacherLogin() {
-    try {
-        const email = document.getElementById("tEmail")?.value;
-        const password = document.getElementById("tPass")?.value;
-        if (!email || !password) return alert("Enter credentials");
+    const email = document.getElementById("tEmail").value;
+    const password = document.getElementById("tPass").value;
 
-        const res = await fetch("http://localhost:3000/teacher/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-        });
+    const res = await fetch(`${API_BASE_URL}/teacher/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+    });
 
-        const data = await res.json();
+    const data = await res.json();
 
-        if (data.success) {
-            localStorage.setItem("teacherName", data.teacher.name);
-            localStorage.setItem("teacherEmail", data.teacher.email);
-            localStorage.setItem("teacherId", data.teacher.id);
-
-            window.location.href = "teacher.html";
-        } else {
-            alert(data.message);
-        }
-    } catch (err) {
-        alert("Server not responding");
+    if (data.success) {
+        localStorage.setItem("teacherName", data.teacher.name);
+        localStorage.setItem("teacherEmail", data.teacher.email);
+        localStorage.setItem("teacherId", data.teacher.id);
+        window.location.href = "teacher.html";
+    } else {
+        alert(data.message);
     }
 }
 
 // ================== STUDENT REGISTER ==================
 async function registerStudent() {
-    try {
-        const body = {
-            name: document.getElementById("sName")?.value,
-            email: document.getElementById("sRegEmail")?.value,
-            password: document.getElementById("sRegPass")?.value,
-            education: document.getElementById("sEducation")?.value,
-            field: document.getElementById("sField")?.value
-        };
+    const body = {
+        name: document.getElementById("sName").value,
+        email: document.getElementById("sRegEmail").value,
+        password: document.getElementById("sRegPass").value,
+        education: document.getElementById("sEducation").value,
+        field: document.getElementById("sField").value
+    };
 
-        const res = await fetch("http://localhost:3000/student/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-        });
+    const res = await fetch(`${API_BASE_URL}/student/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+    });
 
-        const data = await res.json();
-        alert(data.message);
-    } catch (err) {
-        alert("Registration failed");
-    }
+    const data = await res.json();
+    alert(data.message);
 }
 
 // ================== TEACHER REGISTER ==================
 async function registerTeacher() {
-    try {
-        const body = {
-            name: document.getElementById("tName")?.value,
-            email: document.getElementById("tRegEmail")?.value,
-            password: document.getElementById("tRegPass")?.value,
-            subject: document.getElementById("tSubject")?.value
-        };
+    const body = {
+        name: document.getElementById("tName").value,
+        email: document.getElementById("tRegEmail").value,
+        password: document.getElementById("tRegPass").value,
+        subject: document.getElementById("tSubject").value
+    };
 
-        const res = await fetch("http://localhost:3000/teacher/register", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-        });
-
-        const data = await res.json();
-        alert(data.message);
-    } catch (err) {
-        alert("Registration failed");
-    }
-}
-
-// ================= REGISTER TAB SWITCH =================
-const tabs = document.querySelectorAll(".tab");
-const forms = document.querySelectorAll(".form-container");
-
-if (tabs.length > 0 && forms.length > 0) {
-    tabs.forEach(tab => {
-        tab.addEventListener("click", () => {
-            tabs.forEach(t => t.classList.remove("active"));
-            tab.classList.add("active");
-
-            forms.forEach(form => form.classList.remove("active"));
-
-            const target = tab.getAttribute("data-tab");
-            const targetForm = document.getElementById(target);
-            if (targetForm) targetForm.classList.add("active");
-        });
+    const res = await fetch(`${API_BASE_URL}/teacher/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
     });
+
+    const data = await res.json();
+    alert(data.message);
 }
 
-
-// ================= SAFE LOAD NOTES (STUDENT ONLY) =================
+// ================== LOAD NOTES (STUDENT) ==================
 async function loadNotesForStudent() {
-    const notesContainer = document.getElementById("notesContainer");
     const email = localStorage.getItem("studentEmail");
-
     if (!email) return;
 
-    const res = await fetch(`http://localhost:3000/notes/student/${email}`);
+    const res = await fetch(`${API_BASE_URL}/notes/student/${email}`);
     const data = await res.json();
+
+    const notesContainer = document.getElementById("notesContainer");
+    notesContainer.innerHTML = "";
 
     if (!data.success || data.notes.length === 0) {
         notesContainer.innerHTML = "<p>No notes available</p>";
         return;
     }
 
-    notesContainer.innerHTML = "";
     data.notes.forEach(note => {
         const div = document.createElement("div");
         div.className = "note-card";
@@ -193,22 +149,12 @@ async function loadNotesForStudent() {
     });
 }
 
-
-
-
-// ================= LOAD ASSIGNMENTS FOR STUDENT =================
+// ================== LOAD ASSIGNMENTS ==================
 async function loadAssignments() {
     const email = localStorage.getItem("studentEmail");
+    if (!email) return;
 
-    if (!email) {
-        alert("Student not logged in");
-        return;
-    }
-
-    const res = await fetch(
-        `http://localhost:3000/assignments/student/${email}`
-    );
-
+    const res = await fetch(`${API_BASE_URL}/assignments/student/${email}`);
     const data = await res.json();
 
     const ul = document.getElementById("assignmentList");
